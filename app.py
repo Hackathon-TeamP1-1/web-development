@@ -27,7 +27,7 @@ show_header()
 # ✅ Sidebar Navigation
 page = show_sidebar()
 
-# ✅ Home Page
+# ✅ Page Routing
 if page == "Home":
     show_tchart()
     st.markdown("<br><br>", unsafe_allow_html=True)
@@ -37,15 +37,15 @@ if page == "Home":
     st.markdown("<br><br>", unsafe_allow_html=True)
     show_palestinian_data()
 
-# ✅ Prediction Page
 elif page == "Advanced":
     show_predict()
 
-# ✅ Contact Page
+elif page == "ChatBot":
+    show_chat()  
+
 elif page == "Contact":
     show_contact()
 
-# ✅ About Page
 elif page == "About":
     show_about()
 

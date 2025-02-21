@@ -84,6 +84,7 @@ def show_sidebar():
     options = {
         "🏠 Home": "Home",
         "📊 Advanced": "Advanced",
+        "💬 ChatBot": "ChatBot",
         "✉️ Contact": "Contact",
         "ℹ️ About": "About"
     }
