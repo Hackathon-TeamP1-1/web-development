@@ -9,7 +9,7 @@ from ui.palestinian_data import show_palestinian_data
 from ui.predict import show_predict
 from ui.about import show_about
 from ui.contact import show_contact
-
+from ui.chatting import show_chat
 
 # ✅ Apply Global Styling
 st.markdown("""
