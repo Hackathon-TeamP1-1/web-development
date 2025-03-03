@@ -1,43 +1,33 @@
 import streamlit as st
 
 def show_sidebar():
-    """Creates a styled sidebar navigation menu with full-width buttons and improved styling."""
+    """Creates a styled sidebar navigation menu with a fixed, always open sidebar."""
     
     st.markdown("""
         <style>
             /* Sidebar Main Styling */
             [data-testid="stSidebar"] {
-                background-color: #f8f9fa !important; /* Light gray background */
+                background-color: #f8f9fa !important;
                 padding: 15px;
                 border-right: 2px solid #ddd;
                 position: fixed;
-                top: 61px;  /* Moves sidebar down */
+                top: 61px;
                 height: calc(100vh - 61px);
                 width: 300px !important;
                 box-shadow: 2px 0px 10px rgba(0,0,0,0.2);
-            }
-
-            /* Sidebar Container */
-            .sidebar-container {
-                padding: 10px;
             }
 
             /* Sidebar Title */
             .sidebar-title {
                 font-size: 18px;
                 font-weight: bold;
-                color: #333;
+                color: #000000 !important;
                 margin-bottom: 15px;
                 display: flex;
                 align-items: center;
             }
 
-            .sidebar-title i {
-                font-size: 22px;
-                margin-right: 8px;
-            }
-
-            /* Sidebar Button Styling */
+            /* Sidebar Navigation Buttons */
             .sidebar-item {
                 display: flex;
                 align-items: center;
@@ -45,9 +35,9 @@ def show_sidebar():
                 padding: 12px;
                 border-radius: 8px;
                 text-decoration: none;
-                color: #333;
+                color: #ffffff !important;
                 font-weight: 500;
-                background: none;
+                background: #000000 !important;
                 border: none;
                 text-align: left;
                 width: 100%;
@@ -55,13 +45,12 @@ def show_sidebar():
                 transition: background 0.3s ease-in-out, color 0.3s ease-in-out;
             }
 
-            /* Hover Effect */
+            /* Sidebar Button Hover Effect */
             .sidebar-item:hover {
-                background: #e9ecef;
-                cursor: pointer;
+                background: #333333 !important;
             }
 
-            /* Active Item (Highlighted) */
+            /* Active Item */
             .sidebar-active {
                 background: #ff6b6b !important;
                 color: white !important;
@@ -69,11 +58,29 @@ def show_sidebar():
                 box-shadow: inset 0px 0px 8px rgba(0, 0, 0, 0.1);
             }
 
-            /* Icons */
-            .sidebar-icon {
-                margin-right: 10px;
-                font-size: 18px;
+            /* ✅ Remove Sidebar Collapse Button */
+            [data-testid="collapsedControl"] {
+                display: none !important;
             }
+
+            /* ✅ Remove any extra close button */
+            [data-testid="stSidebarNav"] button {
+                display: none !important;
+            }
+
+            /* ✅ Modify Radio Button Styles (Make Unselected White) */
+            div[data-baseweb="radio"] > div {
+                color: black !important;  /* Text color */
+            }
+
+            div[data-baseweb="radio"] svg {
+                fill: white !important;  /* Unselected radio pill is now white */
+            }
+
+            div[data-baseweb="radio"]:has(input:checked) svg {
+                fill: red !important; /* Selected radio pill remains red */
+            }
+
         </style>
     """, unsafe_allow_html=True)
 

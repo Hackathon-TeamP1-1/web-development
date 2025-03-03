@@ -62,7 +62,7 @@ def show_predict():
 
             # 🎯 **Display Prediction Result**
             st.subheader("🔮 Prediction Result:")
-            st.success(f"Predicted Renewable Energy Consumption: {predicted_energy:.2f} KW/m²")
+            st.success(f"Predicted Renewable Energy Production: {predicted_energy:.2f} KW/m²")
 
             # Add space below the prediction result
             st.markdown("<br><br>", unsafe_allow_html=True)

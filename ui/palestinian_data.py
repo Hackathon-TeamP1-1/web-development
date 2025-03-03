@@ -91,12 +91,12 @@ def show_palestinian_data():
     if city_choice == "All Palestine":
         old_value = df[selected_variable].mean()  # Compute average across dataset
         st.markdown("### 📌 Current (Old) Data:")
-        st.success(f"🌍 Average {climate_variable} for All Palestine: **{old_value:.2f}**")
+        st.success(f"🌍 Average Energy from {climate_variable} for All Palestine: **{old_value:.2f}**")
     else:
         city_data = find_nearest_data(city_choice)
         if city_data is not None:
             st.markdown("### 📌 Current (Old) Data:")
-            st.success(f"**{climate_variable} for {city_choice}** (Lat: {city_data['LAT']}, Lon: {city_data['LON']}): **{city_data[selected_variable]:.2f}**")
+            st.success(f"**Energy from {climate_variable} for {city_choice}** (Lat: {city_data['LAT']}, Lon: {city_data['LON']}): **{city_data[selected_variable]:.2f}**")
         else:
             st.error(f"❌ No data found for {city_choice}. Try selecting another city.")
 
@@ -123,7 +123,7 @@ def show_palestinian_data():
         if predictions:
             avg_prediction = sum(predictions) / len(predictions)
             st.markdown("### 🔮 Prediction Result:")
-            st.success(f"🌍 Predicted {climate_variable} for All Palestine: {avg_prediction:.2f} KW/m²")
+            st.success(f"🌍 Predicted Energy from {climate_variable} for All Palestine: {avg_prediction:.2f} KW/m²")
         else:
             st.error("❌ No valid data found for Palestine-wide prediction.")
     else:
@@ -142,7 +142,7 @@ def show_palestinian_data():
             result = fetch_prediction(payload)
             if result:
                 st.markdown("### 🔮 Prediction Result:")
-                st.success(f"Predicted {climate_variable} for {city_choice}: {result['predicted_energy']:.2f} KW/m²")
+                st.success(f"Predicted Energy from {climate_variable} for {city_choice}: {result['predicted_energy']:.2f} KW/m²")
             else:
                 st.error("❌ Failed to retrieve prediction.")
 
