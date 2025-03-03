@@ -4,10 +4,12 @@ import PyPDF2
 import os
 import torch
 import re
+import pickle
 
 # ✅ Define Constants
 PDF_FILE = "details.pdf"
 VAULT_FILE = "vault.txt"
+EMBEDDINGS_CACHE = "embeddings_cache.pkl"
 
 # ✅ Extract Text from PDF and Save to Vault
 def load_pdf():
@@ -26,10 +28,13 @@ def load_pdf():
 
     return text
 
-# ✅ Generate Embeddings for RAG
+# ✅ Generate Embeddings for RAG (Caching Enabled)
 def generate_embeddings():
+    if os.path.exists(EMBEDDINGS_CACHE):
+        with open(EMBEDDINGS_CACHE, "rb") as cache_file:
+            return pickle.load(cache_file)
+
     if not os.path.exists(VAULT_FILE):
-        st.warning("⚠️ No data found in `vault.txt`. Load PDF first.")
         return None, None
 
     with open(VAULT_FILE, "r", encoding="utf-8") as vault:
@@ -42,10 +47,12 @@ def generate_embeddings():
             vault_embeddings.append(embedding)
 
     if not vault_embeddings:
-        st.error("🚨 Error: No valid text extracted for embeddings.")
         return None, None
 
     vault_embeddings_tensor = torch.tensor(vault_embeddings, dtype=torch.float32)
+
+    with open(EMBEDDINGS_CACHE, "wb") as cache_file:
+        pickle.dump((vault_embeddings_tensor, vault_content), cache_file)
 
     return vault_embeddings_tensor, vault_content
 
@@ -61,9 +68,8 @@ def get_relevant_context(user_input, vault_embeddings, vault_content, top_k=3):
 
     return relevant_context
 
-# ✅ Chat Function with RAG + Debugging
+# ✅ Chat Function with RAG
 def ollama_chat(user_input, vault_embeddings, vault_content):
-    st.text_area("🛠 Debugging - User Input:", user_input)  # Debugging user input
     context = get_relevant_context(user_input, vault_embeddings, vault_content)
     query_with_context = f"Relevant Context:\n{context}\n\nUser Query: {user_input}"
 
@@ -73,10 +79,8 @@ def ollama_chat(user_input, vault_embeddings, vault_content):
             messages=[{"role": "system", "content": query_with_context}]
         )
 
-        # ✅ Clean unwanted tokens from the response
         cleaned_response = re.sub(r"<\|.*?\|>", "", response["message"]["content"]).strip()
 
-        st.text_area("🛠 Debugging - API Response:", cleaned_response)  # Debugging API response
         return cleaned_response
 
     except Exception as e:
@@ -96,85 +100,44 @@ def show_chat():
     if 'messages' not in st.session_state:
         st.session_state['messages'] = []
 
-    # ✅ Debugging Session State
-    st.text_area("🛠 Debugging - Session State:", str(st.session_state))
-
-    # ✅ Styling for Chat Messages
-    st.markdown(
-        """
-        <style>
-            .chat-container {
-                background-color: #f8f9fa; 
-                padding: 10px; 
-                border-radius: 8px; 
-                margin-bottom: 10px;
-                color: black;
-                max-width: 100%;
-            }
-            .user-msg {
-                background-color: #d3e3fc;
-                padding: 10px;
-                border-radius: 8px;
-                color: black;
-                align-self: flex-end;
-            }
-            .bot-msg {
-                background-color: #c3c3c3;
-                padding: 10px;
-                border-radius: 8px;
-                color: black;
-                align-self: flex-start;
-            }
-            .chat-wrapper {
-                display: flex;
-                flex-direction: column;
-                gap: 10px;
-            }
-        </style>
-        """,
-        unsafe_allow_html=True
-    )
+    if 'loading' not in st.session_state:
+        st.session_state['loading'] = False
 
     # ✅ Render chat messages
-    st.markdown('<div class="chat-wrapper">', unsafe_allow_html=True)
     for msg in st.session_state['messages']:
-        if msg["role"] == "User":
-            st.markdown(f'<div class="chat-container user-msg"><strong>User:</strong> {msg["content"]}</div>', unsafe_allow_html=True)
-        else:
-            st.markdown(f'<div class="chat-container bot-msg"><strong>Bot:</strong> {msg["content"]}</div>', unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown(f"**{msg['role']}:** {msg['content']}")
 
-    # ✅ Ensure chat input state is initialized
-    if "chat_input" not in st.session_state:
-        st.session_state["chat_input"] = ""
-
-    # ✅ Function to process user input safely
     def process_message():
         user_message = st.session_state["chat_input"].strip()
 
         if user_message:
             st.session_state['messages'].append({"role": "User", "content": user_message})
+            st.session_state['loading'] = True
+            
             bot_response = ollama_chat(user_message, vault_embeddings, vault_content)
             st.session_state['messages'].append({"role": "Bot", "content": bot_response})
+            st.session_state['loading'] = False
+            
+            # ✅ Use the correct rerun function
+            st.session_state.pop("chat_input", None)  # Remove key safely
+            st.rerun()  # ✅ Updated to avoid experimental_rerun error
 
-            # ✅ Instead of modifying the key, reset it using session state workaround
-            st.session_state["chat_input_temp"] = ""  
-            st.rerun()  # Force UI update
+    user_input = st.text_input(
+        "Type your message:", 
+        key="chat_input", 
+        value=st.session_state.get("chat_input", ""),
+        disabled=st.session_state['loading']
+    )
 
-    # ✅ Debugging Input State
-    st.text_area("🛠 Debugging - Chat Input:", st.session_state.get("chat_input", ""))
+    if st.session_state['loading']:
+        with st.spinner("Thinking... 💭"):
+            pass
 
-    # ✅ User input field (avoid modifying `st.session_state.chat_input` directly)
-    user_input = st.text_input("Type your message:", key="chat_input_temp", value="", on_change=process_message)
-
-    # ✅ Buttons for sending message & resetting chat
     col1, col2 = st.columns([3, 1])
-
     with col1:
-        if st.button("Send", key="send_btn"):
+        if st.button("Send", disabled=st.session_state['loading']):
             process_message()
-
     with col2:
-        if st.button("New Chat", key="clear_btn"):
+        if st.button("New Chat"):
             st.session_state['messages'] = []
             st.rerun()
